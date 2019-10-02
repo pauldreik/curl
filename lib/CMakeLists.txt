@@ -93,6 +93,14 @@ if(HIDES_CURL_PRIVATE_SYMBOLS)
   set_property(TARGET ${LIB_NAME} APPEND PROPERTY COMPILE_FLAGS ${CURL_CFLAG_SYMBOLS_HIDE})
 endif()
 
+# this is to avoid timeouts during fuzzing - ideally, the threaded name resolution
+# should be disabled during fuzzing because it sometimes hangs during thread joining,
+# but this is good enough. See https://github.com/curl/curl-fuzzer/issues/7
+option(FUZZING_SHORTCUT_NAME_RESOLUTION "disables name resolution to avoid timeouts during fuzzing" Off)
+if(FUZZING_SHORTCUT_NAME_RESOLUTION)
+  set_property(TARGET ${LIB_NAME} APPEND PROPERTY COMPILE_DEFINITION FUZZING_SHORTCUT_NAME_RESOLUTIONS)
+endif()
+
 # Remove the "lib" prefix since the library is already named "libcurl".
 set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
 set_target_properties(${LIB_NAME} PROPERTIES IMPORT_PREFIX "")

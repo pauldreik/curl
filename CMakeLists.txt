@@ -45,9 +45,29 @@ include(Macros)
 include(CMakeDependentOption)
 include(CheckCCompilerFlag)
 
-project(CURL C)
+project(CURL LANGUAGES C CXX)
 
 message(WARNING "the curl cmake build system is poorly maintained. Be aware")
+
+option(ENABLE_COVERAGE "enables code coverage measurement" Off)
+if(ENABLE_COVERAGE)
+    # Perhaps these flags could be set from outside when invoking cmake instead
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+       add_definitions(-fprofile-instr-generate -fcoverage-mapping)
+       if(${CMAKE_VERSION} VERSION_LESS "3.13")
+          link_libraries("-fprofile-instr-generate -fcoverage-mapping")
+       else()
+          add_link_options(-fprofile-instr-generate -fcoverage-mapping)
+       endif()
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        # not tested
+        add_definitions("-fprofile-arcs -ftest-coverage")
+        link_libraries( gcov )
+    else()
+        message(FATAL_ERROR "no coverage support in this compiler")
+    endif()
+endif() # ENABLE_COVERAGE
+
 
 file(READ ${CURL_SOURCE_DIR}/include/curl/curlver.h CURL_VERSION_H_CONTENTS)
 string(REGEX MATCH "#define LIBCURL_VERSION \"[^\"]*"
@@ -1363,3 +1383,8 @@ if(NOT TARGET uninstall)
       COMMAND ${CMAKE_COMMAND} -P
       ${CMAKE_CURRENT_BINARY_DIR}/CMake/cmake_uninstall.cmake)
 endif()
+
+
+# enable fuzzing
+option(ENABLE_FUZZING "enables fuzzing" Off)
+
