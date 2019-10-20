@@ -735,7 +735,9 @@ Curl_addrinfo *Curl_resolver_getaddrinfo(struct connectdata *conn,
 
   /* for some reason, the program hangs when waiting
    * for the resolver thread to join. To avoid, it,
-   * optionally shortcut name resolution. See https://github.com/curl/curl-fuzzer/issues/7 */
+   * optionally shortcut name resolution.
+   * See https://github.com/curl/curl-fuzzer/issues/7
+   */
 #ifdef FUZZING_SHORTCUT_NAME_RESOLUTION
   if(true) {
     struct in_addr in;
