@@ -733,15 +733,15 @@ Curl_addrinfo *Curl_resolver_getaddrinfo(struct connectdata *conn,
 
   *waitp = 0; /* default to synchronous response */
 
-  // for some reason, the program hangs when waiting
-  // for the resolver thread to join. To avoid, it,
-  // optionally shortcut name resolution. See https://github.com/curl/curl-fuzzer/issues/7
+  /* for some reason, the program hangs when waiting
+   * for the resolver thread to join. To avoid, it,
+   * optionally shortcut name resolution. See https://github.com/curl/curl-fuzzer/issues/7 */
 #ifdef FUZZING_SHORTCUT_NAME_RESOLUTION
   if(true) {
-      struct in_addr in;
-      /* First check if this is an IPv4 address string */
-      if(Curl_inet_pton(AF_INET, "127.0.0.1", &in) > 0)
-        return Curl_ip2addr(AF_INET, &in, "127.0.0.1", port);
+    struct in_addr in;
+    /* First check if this is an IPv4 address string */
+    if(Curl_inet_pton(AF_INET, "127.0.0.1", &in) > 0)
+      return Curl_ip2addr(AF_INET, &in, "127.0.0.1", port);
   }
 #endif
 
