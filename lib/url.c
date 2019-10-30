@@ -399,9 +399,6 @@ CURLcode Curl_close(struct Curl_easy *data)
     Curl_share_unlock(data, CURL_LOCK_DATA_SHARE);
   }
 
-  /* Leave no dangling DOH handles behind */
-  Curl_close(data->req.doh.probe[0].easy);
-  Curl_close(data->req.doh.probe[1].easy);
   free(data->req.doh.probe[0].serverdoh.memory);
   free(data->req.doh.probe[1].serverdoh.memory);
   curl_slist_free_all(data->req.doh.headers);
@@ -1282,8 +1279,14 @@ ConnectionExists(struct Curl_easy *data,
            partway through a handshake!) */
         if(wantNTLMhttp) {
           if(strcmp(needle->user, check->user) ||
-             strcmp(needle->passwd, check->passwd))
+             strcmp(needle->passwd, check->passwd)) {
+
+            /* we prefer a credential match, but this is at least a connection
+               that can be reused and "upgraded" to NTLM */
+            if(check->http_ntlm_state == NTLMSTATE_NONE)
+              chosen = check;
             continue;
+          }
         }
         else if(check->http_ntlm_state != NTLMSTATE_NONE) {
           /* Connection is using NTLM auth but we don't want NTLM */
@@ -1980,6 +1983,10 @@ void Curl_free_request_state(struct Curl_easy *data)
 {
   Curl_safefree(data->req.protop);
   Curl_safefree(data->req.newurl);
+  Curl_close(data->req.doh.probe[0].easy);
+  data->req.doh.probe[0].easy = NULL;
+  Curl_close(data->req.doh.probe[1].easy);
+  data->req.doh.probe[1].easy = NULL;
 }
 
 
