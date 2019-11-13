@@ -314,8 +314,10 @@ curl_easy_strerror(CURLcode error)
   case CURLE_AUTH_ERROR:
     return "An authentication function returned an error";
 
+  case CURLE_HTTP3:
+    return "HTTP/3 error";
+
     /* error codes not used by current libcurl */
-  case CURLE_OBSOLETE20:
   case CURLE_OBSOLETE24:
   case CURLE_OBSOLETE29:
   case CURLE_OBSOLETE32:
@@ -670,7 +672,8 @@ const char *Curl_strerror(int err, char *buf, size_t buflen)
     wchar_t wbuf[256];
     wbuf[0] = L'\0';
 
-    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, err,
+    FormatMessage((FORMAT_MESSAGE_FROM_SYSTEM |
+                   FORMAT_MESSAGE_IGNORE_INSERTS), NULL, err,
                   LANG_NEUTRAL, wbuf, sizeof(wbuf)/sizeof(wchar_t), NULL);
     wcstombs(buf, wbuf, max);
   }
@@ -680,7 +683,8 @@ const char *Curl_strerror(int err, char *buf, size_t buflen)
     strncpy(buf, strerror(err), max);
   else {
     if(!get_winsock_error(err, buf, max) &&
-       !FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, err,
+       !FormatMessageA((FORMAT_MESSAGE_FROM_SYSTEM |
+                        FORMAT_MESSAGE_IGNORE_INSERTS), NULL, err,
                        LANG_NEUTRAL, buf, (DWORD)max, NULL))
       msnprintf(buf, max, "Unknown error %d (%#x)", err, err);
   }
