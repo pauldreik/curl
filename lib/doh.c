@@ -108,10 +108,8 @@ UNITTEST DOHcode doh_encode(const char *host,
    * the overall length by one.
    */
 
-  if(hostlen == 0)
-    return DOH_DNS_BAD_LABEL;
-
   size_t expected_len;
+  DEBUGASSERT(hostlen);
   expected_len = 12 + 1 + hostlen + 4;
   if(host[hostlen-1]!='.')
     expected_len++;
